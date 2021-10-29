@@ -1,0 +1,4 @@
+.env
+
+zappa_settings.json
+data/

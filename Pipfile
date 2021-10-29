@@ -6,6 +6,12 @@ name = "pypi"
 [packages]
 django = "*"
 django-restframework = "*"
+zappa = "*"
+psycopg2 = "*"
+drf-nested-routers = "*"
+pillow = "*"
+django-storages = "*"
+boto3 = "*"
 
 [dev-packages]
 
