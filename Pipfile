@@ -13,6 +13,10 @@ pillow = "*"
 django-storages = "*"
 boto3 = "*"
 django-s3-storage = "*"
+django-cors-headers = "*"
+django-allauth = "*"
+djangorestframework-simplejwt = "*"
+dj-rest-auth = "*"
 
 [dev-packages]
 
