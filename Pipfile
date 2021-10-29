@@ -12,6 +12,7 @@ drf-nested-routers = "*"
 pillow = "*"
 django-storages = "*"
 boto3 = "*"
+django-s3-storage = "*"
 
 [dev-packages]
 

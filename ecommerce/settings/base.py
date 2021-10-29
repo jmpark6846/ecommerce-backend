@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_s3_storage'
 ]
 
 MIDDLEWARE = [
@@ -127,3 +128,10 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+YOUR_S3_BUCKET = "ecommerce--5on7d983s"
+STATICFILES_STORAGE = "django_s3_storage.storage.StaticS3Storage"
+AWS_S3_BUCKET_NAME_STATIC = YOUR_S3_BUCKET
+AWS_S3_CUSTOM_DOMAIN = False
+STATIC_URL = "https://%s.s3.amazonaws.com/" % YOUR_S3_BUCKET
+AWS_S3_MAX_AGE_SECONDS_STATIC = "94608000"
