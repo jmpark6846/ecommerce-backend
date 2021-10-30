@@ -1,0 +1,9 @@
+{
+    "dev": {
+        "django_settings": "ecommerce.settings.production",
+        "profile_name": "zappa",
+        "project_name": "ecommerce",
+        "runtime": "python3.8",
+        "s3_bucket": "ecommerce--5on7d983s"
+    }
+}

@@ -1,4 +1,4 @@
-name: ecommerce zappa lambda deploy
+name: zappa deploy
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,10 +28,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Pipenv environment setup and zappa deploy
+      - name: Pipenv environment setup
         run: |
           pip install pipenv
           pipenv --python 3.8
           pipenv install
+
+      - name: zappa deploy
+        run: |
+          pipenv run zappa init
           pipenv run zappa update dev
           pipenv run zappa manage dev migrate
