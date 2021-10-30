@@ -28,6 +28,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
+      - name: Check credential
+        run: |
+          sudo aws configure list-profiles
+
       - name: Pipenv environment setup
         run: |
           pip install pipenv
