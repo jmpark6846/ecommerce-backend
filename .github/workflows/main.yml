@@ -28,19 +28,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Check credential
-        run: |
-          sudo aws configure list-profiles
-
       - name: Pipenv environment setup
         run: |
+          cd psycopg2
+          ls
           pip install pipenv
           pipenv --python 3.8
           pipenv install
-
-      - name: check database connection
-        run: |
-          pipenv run zappa manage check --database default
 
       - name: zappa deploy
         run: |
