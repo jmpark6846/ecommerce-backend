@@ -40,8 +40,7 @@ jobs:
 
       - name: check database connection
         run: |
-          ls
-          pipenv run python manage.py check --database default
+          pipenv run zappa manage check --database default
 
       - name: zappa deploy
         run: |
