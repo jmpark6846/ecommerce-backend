@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
 
-    'accounts'
+    'accounts',
+    'inventory',
 ]
 
 MIDDLEWARE = [
@@ -161,8 +162,8 @@ AUTH_USER_MODEL = 'accounts.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-        "rest_framework.permissions.DjangoModelPermissions",
+        # 'rest_framework.permissions.IsAuthenticated',
+        # "rest_framework.permissions.DjangoModelPermissions",
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',

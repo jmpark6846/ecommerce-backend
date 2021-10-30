@@ -5,7 +5,6 @@ name = "pypi"
 
 [packages]
 django = "*"
-django-restframework = "*"
 zappa = "*"
 psycopg2 = "*"
 drf-nested-routers = "*"
@@ -17,6 +16,8 @@ django-cors-headers = "*"
 django-allauth = "*"
 djangorestframework-simplejwt = "*"
 dj-rest-auth = "*"
+pendulum = "*"
+djangorestframework = "*"
 
 [dev-packages]
 
