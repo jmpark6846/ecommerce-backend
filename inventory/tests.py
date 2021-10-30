@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
+from rest_framework import status
+
 from ecommerce.tests import EcommerceTestCase
-from inventory.models import Product, Category
+from inventory.models import Product, Category, ProductReview
 
 
 class InventoryTestCase(EcommerceTestCase):
@@ -22,3 +24,23 @@ class InventoryTestCase(EcommerceTestCase):
         }
         res = self.client.post('/products/{}/reviews/'.format(product.id), review_data)
         self.assertEqual(res.status_code, 201)
+
+    def test_로그인한_사용자는_상품리뷰를_수정_삭제_할수있다(self):
+        self.login(self.user)
+        product = Product.objects.last()
+        review = ProductReview.objects.create(
+            content="content",
+            product=product,
+            author=self.user
+        )
+        review_data = {
+            'content': 'content_updated',
+            'product': product.id,
+            'author': self.user.pk
+        }
+        res = self.client.put('/products/{}/reviews/{}/'.format(product.id, review.id), review_data)
+        self.assertEqual(res.status_code, 200)
+
+        res = self.client.delete('/products/{}/reviews/{}/'.format(product.id, review.id))
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+

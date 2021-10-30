@@ -22,10 +22,12 @@ class ProductReviewViewSet(ModelViewSet):
             permission_classes = []
         elif self.action in ['create']:
             permission_classes = [IsAuthenticated]  # 상품을 산 사람만
-        elif self.action in ['update', 'delete']:
-            permission_classes = [IsAuthor]
+        elif self.action in ['update', 'destroy']:
+            permission_classes = [IsAuthor, IsAuthenticated]
 
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
         return ProductReview.objects.filter(author=self.request.user, product_id=self.kwargs['product_pk'])
+
+
