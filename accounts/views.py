@@ -4,11 +4,17 @@ from django.core.exceptions import ObjectDoesNotExist
 from dj_rest_auth.jwt_auth import unset_jwt_cookies
 
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from dj_rest_auth.views import LogoutView as dj_rest_auth_LogoutView
+from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from accounts.models import ShoppingCartItem
+from accounts.serializers import ShoppingCartItemSerializer
+from ecommerce.permissions import IsOwner
 
 
 class LogoutView(dj_rest_auth_LogoutView):
@@ -50,4 +56,21 @@ class LogoutView(dj_rest_auth_LogoutView):
         return response
 
 
-NOTIFICATION_MAX = 10
+class CartView(APIView):
+    permission_classes = [IsOwner, IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ShoppingCartItemSerializer(data=request.data['items'], many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=201)
+
+    def delete(self, request, *args, **kwargs):
+        """
+        카트 아이템 삭제
+        items: 삭제할 카트 아이템 id 리스트, 예) [2, 4, 5]
+        """
+        qs = ShoppingCartItem.objects.filter(id__in=request.data['items'])
+        qs.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+

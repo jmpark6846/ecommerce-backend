@@ -18,6 +18,7 @@ djangorestframework-simplejwt = "*"
 dj-rest-auth = "*"
 pendulum = "*"
 djangorestframework = "*"
+django-simple-history = "*"
 
 [dev-packages]
 

@@ -30,8 +30,6 @@ jobs:
 
       - name: Pipenv environment setup
         run: |
-          cd psycopg2
-          ls
           pip install pipenv
           pipenv --python 3.8
           pipenv install

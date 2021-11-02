@@ -43,15 +43,15 @@ INSTALLED_APPS = [
     'rest_framework',
     # 'rest_framework_simplejwt.token_blacklist',
 
-
     'allauth',
     'allauth.account',
 
     'dj_rest_auth',
     'dj_rest_auth.registration',
-
+    'simple_history',
     'accounts',
     'inventory',
+    'payment',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'ecommerce.urls'

@@ -22,14 +22,15 @@ from accounts.views import LogoutView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('accounts/', include('accounts.urls')),
-    path('accounts/logout/', LogoutView.as_view(), name='logout'),
-
-    path('allauth/', include('allauth.urls')),
     path('accounts/', include('dj_rest_auth.urls')),
     path('accounts/registration/', include('dj_rest_auth.registration.urls')),
 
-    path('', include('inventory.urls'))
+    path('accounts/', include('accounts.urls')),
+    path('accounts/logout/', LogoutView.as_view(), name='logout'),
+    # path('allauth/', include('allauth.urls')),
+
+    path('', include('inventory.urls')),
+    path('', include('payment.urls'))
 ]
 
 if settings.DEBUG:

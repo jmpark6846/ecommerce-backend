@@ -46,3 +46,23 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            super(User, self).save(*args, **kwargs)
+            ShoppingCart.objects.create(user=self)
+        else:
+            super(User, self).save(*args, **kwargs)
+
+
+class ShoppingCart(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.username
+
+
+class ShoppingCartItem(models.Model):
+    cart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE, related_name='items')
+    option = models.ForeignKey('inventory.ProductOption', on_delete=models.CASCADE)
+    qty = models.PositiveSmallIntegerField(default=0)

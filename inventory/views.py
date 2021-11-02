@@ -1,11 +1,9 @@
-from rest_framework import status
-from rest_framework.generics import ListAPIView
 from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet, ViewSetMixin, GenericViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from inventory.models import Product, ProductReview
-from inventory.permissions import IsAuthor
+from ecommerce.permissions import IsAuthor
 from inventory.serializers import ProductSerializer, ProductReviewSerializer
 
 
