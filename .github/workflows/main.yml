@@ -36,8 +36,6 @@ jobs:
 
       - name: zappa deploy
         run: |
-          ls
-          cd psycopg2
-          ls
-          pipenv run zappa update dev
+          pipenv run zappa package -o code.zip
+          pipenv run zappa update dev -z code.zip
           pipenv run zappa manage dev migrate
