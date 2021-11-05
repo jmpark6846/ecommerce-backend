@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import PermissionDenied, ValidationError, MethodNotAllowed
 
+from accounts.models import ShoppingCartItem
 from ecommerce.permissions import IsOwner
 from payment.models import Order, OrderItem, Payment
 from payment.serializers import OrderDetailSerializer, OrderListSerializer, PaymentSerializer
@@ -111,4 +112,5 @@ class OrderViewSet(ModelViewSet):
         if not succeed:
             return Response({'error': '결제에 실패했습니다.', 'detail': exception}, status=500)
 
+        ShoppingCartItem.objects.filter(cart=self.request.user.shoppingcart).delete()
         return Response(PaymentSerializer(payment).data, status=201)

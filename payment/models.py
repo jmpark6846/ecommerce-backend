@@ -3,14 +3,13 @@ from django.db import models
 from django.db.models import Sum
 from simple_history.models import HistoricalRecords
 
+from ecommerce.common import DEFAULT_SHIPPING_FEE
 from payment.utils import PaymentService, PaymentError
 
 User = get_user_model()
 
 
 class Order(models.Model):
-    DEFAULT_SHIPPING_FEE = 2500
-
     class STATUS(models.IntegerChoices):
         CREATED = 0
         PAID = 1

@@ -2,6 +2,7 @@ import random
 import json
 from django.db.models import Value
 
+from accounts.models import ShoppingCartItem
 from ecommerce.tests import EcommerceTestCase
 from inventory.models import ProductOption, Product
 from payment.models import Order, OrderItem, Payment
@@ -38,7 +39,7 @@ class PaymentTestCase(EcommerceTestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn('order_log', res.data)
 
-    def test_주문_생성(self):
+    def test_체크아웃(self):
         self.login(self.user)
         product = Product.objects.last()
         data = []
@@ -85,3 +86,33 @@ class PaymentTestCase(EcommerceTestCase):
         self.assertEqual(res.status_code, 201)
         self.order.refresh_from_db()
         self.assertIsNotNone(self.order.payments)
+
+    def test_장바구니_추가_주문_결제(self):
+        self.login(self.user)
+
+        # 장바구니 추가
+        cart_item = {
+            'cart': self.user.shoppingcart.id,
+            'option': ProductOption.objects.last().id,
+            'qty': 1
+        }
+        data = {
+            'items': [cart_item]
+        }
+        data = json.dumps(data)
+        res = self.client.post('/accounts/{}/cart/'.format(self.user.id), data, content_type='application/json')
+        self.assertEqual(res.status_code, 201)
+
+        # 체크아웃
+        res = self.client.post('/accounts/{}/cart/checkout/'.format(self.user.id))
+        self.assertEqual(res.status_code, 201)
+        order_id = res.data['order']['id']
+
+        # 결제
+        data = {'order': order_id, 'payment_method': Payment.PAYMENT_METHOD.NAVERPAY}
+        res = self.client.post('/orders/{}/proceed_payment/', data)
+        self.assertEqual(res.status_code, 201)
+
+        # 결제 후 장바구니를 비운다.
+        cart_item_count = ShoppingCartItem.objects.filter(cart=self.user.shoppingcart).count()
+        self.assertEqual(cart_item_count, 0)

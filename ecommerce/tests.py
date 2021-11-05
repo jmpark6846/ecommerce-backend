@@ -36,7 +36,6 @@ class EcommerceTestCase(APITestCase):
                 price=1000 * i,
                 category=category_list[random_cate_num]
             )
-
             for j in range(0, 3):
                 ProductOption.objects.create(
                     product=product,
