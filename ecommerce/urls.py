@@ -29,6 +29,7 @@ urlpatterns = [
     path('accounts/logout/', LogoutView.as_view(), name='logout'),
     # path('allauth/', include('allauth.urls')),
 
+    path('ecommerce_admin/', include('ecommerce_admin.urls')),
     path('', include('inventory.urls')),
     path('', include('payment.urls'))
 ]

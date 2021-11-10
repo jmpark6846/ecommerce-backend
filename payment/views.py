@@ -7,7 +7,9 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import PermissionDenied, ValidationError, MethodNotAllowed
 
 from accounts.models import ShoppingCartItem
+from ecommerce.pagination import DefaultPagination
 from ecommerce.permissions import IsOwner
+from inventory.models import ProductOption
 from payment.models import Order, OrderItem, Payment
 from payment.serializers import OrderDetailSerializer, OrderListSerializer, PaymentSerializer
 
@@ -16,6 +18,7 @@ class OrderViewSet(ModelViewSet):
     """
     주문 뷰셋: 주문 생성, 전체조회, 상세조회
     """
+    pagination_class = DefaultPagination
 
     def get_serializer_class(self):
         if self.action in ['list']:
@@ -57,11 +60,14 @@ class OrderViewSet(ModelViewSet):
                     user=self.request.user,
                 )
                 for order_item_data in request.data:
-                    OrderItem.objects.create(
+                    order_item = OrderItem.objects.create(
                         order=order,
                         option_id=order_item_data['option'],
-                        qty=order_item_data['option']
+                        qty=order_item_data['qty'],
                     )
+                    order_item.amount = order_item.option.price * order_item_data['qty']
+                    order_item.save()
+
                 order.total_amount = order.get_total_amount()
                 order.save_without_historical_record()
 
@@ -87,15 +93,15 @@ class OrderViewSet(ModelViewSet):
         결제 실패: 결제 주문 상태 변경
 
         @params
-        order(int)
         payment_method(str)
         """
-        try:
-            order = Order.objects.get(id=request.data['order'])
-        except Order.DoesNotExist:
-            return Response({'error': '주문 정보를 찾을 수 없습니다.'}, status=404)
+        order = self.get_object()
+        is_mock_fail = False  # 결제 실패 테스트용
 
-        if not 'payment_method' in request.data:
+        if 'mock_fail' in request.data:
+            is_mock_fail = request.data['mock_fail']
+
+        if 'payment_method' not in request.data:
             return Response({'error': '결제정보를 찾을 수 없습니다.'}, status=400)
 
         if not request.data['payment_method'] in Payment.PAYMENT_METHOD.values:
@@ -107,10 +113,10 @@ class OrderViewSet(ModelViewSet):
             payment_method=request.data['payment_method']
         )
 
-        succeed, exception = payment.proceed_payment()
+        succeed, exception = payment.proceed_payment(mock_fail=is_mock_fail)
 
         if not succeed:
-            return Response({'error': '결제에 실패했습니다.', 'detail': exception}, status=500)
+            return Response({'error': exception.detail['error_msg'], 'detail': {'order': order.id}}, status=500)
 
         ShoppingCartItem.objects.filter(cart=self.request.user.shoppingcart).delete()
         return Response(PaymentSerializer(payment).data, status=201)

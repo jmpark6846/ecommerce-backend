@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django.contrib.postgres',
     'django_s3_storage',
     'corsheaders',
     'rest_framework',
@@ -52,6 +53,8 @@ INSTALLED_APPS = [
     'accounts',
     'inventory',
     'payment',
+    'ecommerce_admin',
+
 ]
 
 MIDDLEWARE = [

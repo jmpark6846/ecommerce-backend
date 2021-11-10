@@ -1,7 +1,7 @@
 from rest_framework import status
 
 from ecommerce.tests import EcommerceTestCase
-from inventory.models import Product, ProductReview
+from inventory.models import Product, ProductReview, Category, ProductOption
 
 
 class InventoryTestCase(EcommerceTestCase):
@@ -39,3 +39,29 @@ class InventoryTestCase(EcommerceTestCase):
 
         res = self.client.delete('/products/{}/reviews/{}/'.format(product.id, review.id))
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class SearchTestCase(EcommerceTestCase):
+    def test_검색(self):
+        product = Product.objects.create(
+            name='나이키',
+            price=10000,
+            category=Category.objects.last()
+        )
+        ProductOption.objects.create(
+            product=product,
+            name='색상',
+            value='흰색',
+            price=12000,
+        )
+        ProductOption.objects.create(
+            product=product,
+            name='색상',
+            value='검은색',
+            price=12000,
+        )
+        search_term = "나이키"
+        res = self.client.get('/products/?search={}'.format(search_term))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data['count'], 1)
+

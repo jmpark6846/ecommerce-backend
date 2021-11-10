@@ -30,7 +30,7 @@ class PaymentTestCase(EcommerceTestCase):
         self.login(self.user)
         res = self.client.get('/orders/')
         self.assertEqual(res.status_code, 200)
-        self.assertNotIn('order_log', res.data[0])
+        self.assertNotIn('order_log', res.data['list'][0])
 
     def test_주문_상세_조회(self):
         self.setup_order_data()
@@ -74,14 +74,13 @@ class PaymentTestCase(EcommerceTestCase):
         res = self.client.put('/orders/{}/cancel/'.format(res.data['id']))
         self.assertEqual(res.status_code, 200)
         order = Order.objects.get(id=res.data['id'])
-
         self.assertEqual(order.status, Order.STATUS.CANCELED)
 
     def test_결제(self):
         self.setup_order_data()
         self.login(self.user)
         data = {'order': self.order.id, 'payment_method': Payment.PAYMENT_METHOD.NAVERPAY}
-        res = self.client.post('/orders/{}/proceed_payment/',data)
+        res = self.client.post('/orders/{}/proceed_payment/'.format(self.order.id), data)
 
         self.assertEqual(res.status_code, 201)
         self.order.refresh_from_db()
@@ -96,9 +95,7 @@ class PaymentTestCase(EcommerceTestCase):
             'option': ProductOption.objects.last().id,
             'qty': 1
         }
-        data = {
-            'items': [cart_item]
-        }
+        data = [cart_item]
         data = json.dumps(data)
         res = self.client.post('/accounts/{}/cart/'.format(self.user.id), data, content_type='application/json')
         self.assertEqual(res.status_code, 201)
@@ -110,9 +107,29 @@ class PaymentTestCase(EcommerceTestCase):
 
         # 결제
         data = {'order': order_id, 'payment_method': Payment.PAYMENT_METHOD.NAVERPAY}
-        res = self.client.post('/orders/{}/proceed_payment/', data)
+        res = self.client.post('/orders/{}/proceed_payment/'.format(order_id), data)
         self.assertEqual(res.status_code, 201)
 
         # 결제 후 장바구니를 비운다.
         cart_item_count = ShoppingCartItem.objects.filter(cart=self.user.shoppingcart).count()
         self.assertEqual(cart_item_count, 0)
+
+    def test_결제실패_재시도(self):
+        self.setup_order_data()
+        self.login(self.user)
+        self.assertEqual(self.order.order_log.count(), 1)
+
+        data = {'mock_fail': True, 'order': self.order.id, 'payment_method': Payment.PAYMENT_METHOD.NAVERPAY}
+        res = self.client.post('/orders/{}/proceed_payment/'.format(self.order.id), data)
+        self.assertEqual(res.status_code, 500)
+        self.assertEqual(self.order.order_log.count(), 2)
+
+        del data['mock_fail']
+        res = self.client.post('/orders/{}/proceed_payment/'.format(self.order.id), data)
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(self.order.order_log.count(), 3)
+
+        self.order.refresh_from_db()
+
+    def test_주문취소(self):
+        pass

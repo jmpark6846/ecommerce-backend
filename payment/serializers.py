@@ -1,7 +1,16 @@
 from rest_framework import serializers
 from simple_history.models import HistoricalRecords
 
+from inventory.serializers import ProductOptionSerializer, ProductOptionDetailSerializer
 from payment.models import Order, OrderItem, Payment
+
+
+class OrderItemDetailSerializer(serializers.ModelSerializer):
+    option = ProductOptionDetailSerializer(read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'option', 'qty', 'amount']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -11,27 +20,34 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderListSerializer(serializers.ModelSerializer):
+    items = OrderItemDetailSerializer(read_only=True, many=True)
+
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ['id', 'total_amount', 'ordered_at', 'items', 'status']
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(read_only=True, many=True)
+    items = OrderItemDetailSerializer(read_only=True, many=True)
     order_log = serializers.SerializerMethodField()
+    products_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ['id', 'status', 'total_amount', 'shipping_fee', 'ordered_at', 'order_log', 'products_amount',
+                  'items']
 
     def get_order_log(self, obj):
         return get_change_from_histories(obj.order_log)
 
+    def get_products_amount(self, obj):
+        return obj.get_products_amount()
 
-def serialize_change(history, change=None, created: bool=False):
+
+def serialize_change(history, change=None, created: bool = False):
     if history.history_user is None:
         history.history_user_id = history.instance
-    HistoricalRecords
+
     if created:
         return {
             'field': None,
@@ -67,6 +83,8 @@ def get_change_from_histories(histories):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    order = OrderDetailSerializer(read_only=True)
+
     class Meta:
         model = Payment
         fields = '__all__'

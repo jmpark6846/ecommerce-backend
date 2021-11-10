@@ -17,9 +17,18 @@ class EcommerceTestCase(APITestCase):
         )
         user.set_password('test')
         cls.user = user
+
+        user2 = User.objects.create(
+            email='test2@test.co',
+            username='test2',
+            is_staff=True,
+        )
+        user2.set_password('test2')
+        cls.superuser = user2
+
         cls.client = APIClient()
 
-        cls.product_size = 3
+        cls.productoption_size = 3
         cls.category_size = 3
 
         category_list = []
@@ -29,19 +38,18 @@ class EcommerceTestCase(APITestCase):
             )
             category_list.append(category)
 
-        for i in range(0, cls.product_size):
-            random_cate_num = random.randint(0, cls.category_size - 1)
+        for category in category_list:
             product = Product.objects.create(
                 name='product {}'.format(i),
-                price=1000 * i,
-                category=category_list[random_cate_num]
+                price=1000,
+                category=category
             )
-            for j in range(0, 3):
+            for j in range(0, cls.productoption_size):
                 ProductOption.objects.create(
                     product=product,
                     name='product option {}'.format(j),
                     value='product option value {}'.format(j),
-                    price=product.price+100*j
+                    price=1000*j
                 )
 
     def login(self, user):

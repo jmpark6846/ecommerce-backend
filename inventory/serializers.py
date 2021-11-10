@@ -1,10 +1,22 @@
 from rest_framework import serializers
 
-from inventory.models import Product, ProductReview, ProductOption, ProductImage
+from inventory.models import Product, ProductReview, ProductOption, ProductImage, Category
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
 
-class ProductOptionSerialiezr(serializers.ModelSerializer):
+
+class ProductOptionDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductOption
+        fields = ['id', 'product', 'name', 'value', 'price', 'is_default']
+        depth = 1
+
+
+class ProductOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductOption
         fields = ['id', 'product', 'name', 'value', 'price', 'is_default']
@@ -38,7 +50,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     productimage_set = ProductImageSerializer(read_only=True, many=True)
-    productoption_set = ProductOptionSerialiezr(read_only=True, many=True)
+    productoption_set = ProductOptionSerializer(read_only=True, many=True)
     reviews = ProductReviewSerializer(read_only=True)
 
     class Meta:

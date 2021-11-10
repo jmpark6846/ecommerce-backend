@@ -37,15 +37,18 @@ class Order(models.Model):
         self.status = self.STATUS.CANCELED
         self.save()
 
+    def get_products_amount(self):
+        return self.items.aggregate(amount=Sum('amount'))['amount']
+
     def get_total_amount(self):
-        data = self.items.aggregate(total_amount=Sum('option__price'))
-        return data['total_amount']
+        return self.get_products_amount() + self.shipping_fee
 
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     option = models.ForeignKey('inventory.ProductOption', on_delete=models.DO_NOTHING)
     qty = models.PositiveSmallIntegerField(default=0)
+    amount = models.IntegerField('항목별 주문 금액', default=0)
 
 
 class Payment(models.Model):
@@ -70,12 +73,13 @@ class Payment(models.Model):
     transfer_bank = models.IntegerField('무통장입금 은행', blank=True, null=True)
     payment_log = HistoricalRecords()
 
-    def proceed_payment(self):
+    def proceed_payment(self, mock_fail=False):
         try:
             PaymentService.proceed_payment(
                 email=self.order.user.email,
                 amount=self.amount,
-                payment_method=self.payment_method
+                payment_method=self.payment_method,
+                mock_fail=mock_fail
             )
 
             self.order.status = self.order.STATUS.PAID
@@ -90,7 +94,7 @@ class Payment(models.Model):
             self.order.save()
 
             self.status = self.STATUS.PAYMENT_FAILED
-            self.error_message = e.data['detail']
+            self.error_message = e.detail['error_msg']
             self.save()
             return False, e
 

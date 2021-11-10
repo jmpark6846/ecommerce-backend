@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from accounts.models import User, ShoppingCart, ShoppingCartItem
 from inventory.models import ProductOption, Product
-from inventory.serializers import ProductImageSerializer, ProductOptionSerialiezr
+from inventory.serializers import ProductImageSerializer, ProductOptionSerializer
 
 
 class ShoppingCartItemSerializer(serializers.ModelSerializer):
@@ -16,7 +16,7 @@ class ShoppingCartItemSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         result = super(ShoppingCartItemSerializer, self).to_representation(instance)
         option = ProductOption.objects.get(id=result['option'])
-        result['option'] = ProductOptionSerialiezr(option).data
+        result['option'] = ProductOptionSerializer(option).data
         product = Product.objects.get(id=result['option']['product'])
         result['option']['product'] = {
             'id': product.id,

@@ -67,14 +67,20 @@ class CartView(APIView):
         return Response(serializer.data, status=200)
 
     def post(self, request, *args, **kwargs):
-        serializer = ShoppingCartItemSerializer(data=request.data['items'], context={'cart': request.user.shoppingcart},
+        serializer = ShoppingCartItemSerializer(data=request.data, context={'cart': request.user.shoppingcart},
                                                 many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=201)
 
-    def delete(self, request, *args, **kwargs):
-        qs = ShoppingCartItem.objects.filter(id__in=request.data['items'])
+    def patch(self, request, *args, **kwargs):
+        cart_item = ShoppingCartItem.objects.get(id=request.data['id'])
+        cart_item.qty = request.data['qty']
+        cart_item.save()
+        return Response(ShoppingCartItemSerializer(cart_item).data, status=200)
+
+    def put(self, request, *args, **kwargs):
+        qs = ShoppingCartItem.objects.filter(id__in=request.data)
         qs.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -90,10 +96,15 @@ class CheckoutView(APIView):
             return Response({'error': '장바구니가 비어있습니다.'}, status=400)
 
         for cart_item in cart_items:
-            OrderItem.objects.create(
+            order_item = OrderItem.objects.create(
                 order=order,
                 option=cart_item.option,
                 qty=cart_item.qty,
             )
+            order_item.amount = cart_item.option.price * cart_item.qty
+            order_item.save()
+
+        order.total_amount = order.get_total_amount()
+        order.save()
 
         return Response({'order': OrderDetailSerializer(order).data}, status=201)

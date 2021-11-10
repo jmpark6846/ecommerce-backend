@@ -6,16 +6,9 @@ from inventory.models import Product, ProductOption
 
 
 class AccountTestCase(EcommerceTestCase):
-    def test_사용자_수정(self):
-        self.user.username = "chagned!"
-        self.user.save()
-        self.assertEqual(ShoppingCart.objects.count(), 1)
-
-
     def test_사용자는_카트에_제품을_2개_추가하고_1개_삭제_할수있다(self):
         self.login(self.user)
-        data = {
-            'items': [{
+        data = [{
                     'cart': self.user.shoppingcart.id,
                     'option': ProductOption.objects.last().id,
                     'qty': 1
@@ -24,17 +17,15 @@ class AccountTestCase(EcommerceTestCase):
                     'option': ProductOption.objects.first().id,
                     'qty': 2
                 }]
-        }
+
         data = json.dumps(data)
 
         res = self.client.post('/accounts/{}/cart/'.format(self.user.id), data, content_type='application/json')
         self.assertEqual(res.status_code, 201)
         cart_item = ShoppingCartItem.objects.last()
-        data = {
-            'items': [cart_item.id]
-        }
+        data = [cart_item.id]
         data = json.dumps(data)
-        res = self.client.delete('/accounts/{}/cart/'.format(self.user.id), data, content_type='application/json')
+        res = self.client.put('/accounts/{}/cart/'.format(self.user.id), data, content_type='application/json')
         self.assertEqual(res.status_code, 204)
         self.assertEqual(ShoppingCartItem.objects.count(), 1)
 
@@ -45,9 +36,7 @@ class AccountTestCase(EcommerceTestCase):
             'option': ProductOption.objects.last().id,
             'qty': 1
         }
-        data = {
-            'items': [cart_item]
-        }
+        data =  [cart_item]
         data = json.dumps(data)
         res = self.client.post('/accounts/{}/cart/'.format(self.user.id), data, content_type='application/json')
         self.assertEqual(res.status_code, 201)
@@ -57,3 +46,24 @@ class AccountTestCase(EcommerceTestCase):
         self.assertEqual(ShoppingCartItem.objects.count(), 1)
         cart_item = ShoppingCartItem.objects.filter(cart=self.user.shoppingcart).last()
         self.assertEqual(cart_item.qty, 2)
+
+    def test_장바구니_항목_수량_변경(self):
+        self.login(self.user)
+        cart_item = {
+            'cart': self.user.shoppingcart.id,
+            'option': ProductOption.objects.last().id,
+            'qty': 1
+        }
+        data = [cart_item]
+        data = json.dumps(data)
+        res = self.client.post('/accounts/{}/cart/'.format(self.user.id), data, content_type='application/json')
+        self.assertEqual(res.status_code, 201)
+
+        changed_qty = 3
+        data = {
+            'id': res.data[0]['id'],
+            'qty': changed_qty
+        }
+        res = self.client.patch('/accounts/{}/cart/'.format(self.user.id), data)
+        cart_item = ShoppingCartItem.objects.get(id=res.data['id'])
+        self.assertEqual(cart_item.qty, changed_qty)

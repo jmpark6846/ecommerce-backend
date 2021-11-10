@@ -14,6 +14,10 @@ class Product(models.Model):
     price = models.IntegerField('가격')
     category = models.ForeignKey('inventory.Category', on_delete=models.DO_NOTHING)
     shipping_fee = models.IntegerField(default=DEFAULT_SHIPPING_FEE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return self.name
