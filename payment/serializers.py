@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from simple_history.models import HistoricalRecords
 
-from inventory.serializers import ProductOptionSerializer, ProductOptionDetailSerializer
+from inventory.serializers import ProductOptionSerializer
 from payment.models import Order, OrderItem, Payment
 
 
 class OrderItemDetailSerializer(serializers.ModelSerializer):
-    option = ProductOptionDetailSerializer(read_only=True)
+    option = ProductOptionSerializer(read_only=True)
 
     class Meta:
         model = OrderItem

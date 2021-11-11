@@ -34,7 +34,7 @@ class ProductViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     def list(self, request, *args, **kwargs):
         search_term = request.query_params.get('search')
         if search_term:
-            qs = Product.objects.annotate(search=SearchVector('name')).filter(search=search_term)
+            qs = Product.objects.filter(name__contains=search_term)
             page = self.paginate_queryset(qs)
 
             if page is not None:

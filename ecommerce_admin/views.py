@@ -1,4 +1,5 @@
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Func
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 
 from rest_framework.decorators import action
@@ -6,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from ecommerce_admin.serializers import TopSellingItemsSerializers
 from payment.models import Payment, OrderItem, Order
 from payment.serializers import PaymentSerializer
 
@@ -21,38 +23,33 @@ class PaymentAdminViewSet(ModelViewSet):
         # start = today - timezone.timedelta(days=14)
         start = today - timezone.timedelta(days=today.weekday())
         start.replace(hour=0, minute=0, second=0)
-        # end = start + timezone.timedelta(days=6)
-        # end.replace(hour=23, minute=59, second=59)
-        # print(start, end)
-        # payment = Payment.objects.filter(paid_at__week_day=)
+        end = start + timezone.timedelta(days=6)
+        end.replace(hour=23, minute=59, second=59)
 
-        qs = self.get_queryset().filter(paid_at__gt=start) \
+        labels = [start + timezone.timedelta(days=i) for i in range(7)]
+
+        qs = self.get_queryset().filter(paid_at__gte=start) \
             .values('paid_at__week_day') \
-            .annotate(total_amount=Sum('amount'), week_day=F('paid_at__week_day')) \
-            .values('total_amount', 'week_day') \
-            .order_by('week_day')
-        return Response(qs, status=200)
+            .annotate(total_amount=Sum('amount'), date=TruncDate('paid_at')) \
+            .values('total_amount', 'date') \
+            .order_by('date')
+
+        return Response({'labels': labels, 'qs': qs}, status=200)
 
     @action(detail=False, methods=['get'])
-    def this_month_by_category(self, request, *args, **kwargs):
-        '''
-        [(category, ProductOption, amount), ...]
-        '''
+    def top_selling_items(self, request, *args, **kwargs):
         today = timezone.now()
-        # start = today - timezone.timedelta(days=14)
         start_of_this_month = today.replace(day=1, hour=0, minute=0, second=0)
         order_paid_this_month_ids = Payment.objects.filter(
             paid_at__gt=start_of_this_month,
             order__status=Order.STATUS.PAID) \
             .values_list('order_id', flat=True)
 
-        qs = OrderItem.objects.filter(order_id__in=order_paid_this_month_ids)\
-            .values('option__product__category') \
-            .annotate(total_amount=Sum('amount'),
-                      category=F('option__product__category'),
-                      product=F('option__product'))\
-            .values('category','product','total_amount')\
-            .order_by('category')
+        top_selling_items_qs = OrderItem.objects.filter(order_id__in=order_paid_this_month_ids) \
+                                   .values('option') \
+                                   .annotate(total_amount=Sum('amount'), total_qty=Sum('qty')) \
+                                   .values('option', 'total_amount', 'total_qty') \
+                                   .order_by('-total_amount')[:5]
 
-        print(qs)
-        return Response(qs, status=200)
+        return Response(TopSellingItemsSerializers(top_selling_items_qs, many=True, context={'request': request}).data,
+                        status=200)

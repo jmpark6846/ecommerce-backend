@@ -10,10 +10,16 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductOptionDetailSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductOption
-        fields = ['id', 'product', 'name', 'value', 'price', 'is_default']
+        fields = ['id', 'product', 'name', 'value', 'price', 'is_default', 'image']
         depth = 1
+
+    def get_image(self, obj: ProductOption):
+        product_image = obj.product.productimage_set.first()
+        return ProductImageSerializer(product_image, context=self.context).data
 
 
 class ProductOptionSerializer(serializers.ModelSerializer):

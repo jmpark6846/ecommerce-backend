@@ -62,7 +62,7 @@ class Payment(models.Model):
         KAKAOPAY = 'kakaopay'
         NAVERPAY = 'naverpay'
 
-    order = models.ForeignKey(Order, on_delete=models.DO_NOTHING, related_name='payments')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='payments')
     amount = models.IntegerField('결제금액')
     status = models.SmallIntegerField(choices=STATUS.choices, default=STATUS.CREATED)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD.choices)

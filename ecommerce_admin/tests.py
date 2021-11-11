@@ -52,30 +52,21 @@ class AdminTestCase(EcommerceTestCase):
         self.login(self.superuser)
         res = self.client.get('/ecommerce_admin/payments/weeks/')
         self.assertEqual(res.status_code, 200)
-        data = list(filter(lambda x: x['week_day'] == weekday_of_today, res.data))[0]
-        self.assertEqual(data['total_amount'], payment.amount * 3)
+        # data = list(filter(lambda x: x['week_day'] == weekday_of_today, res.data))[0]
+        # self.assertEqual(data['total_amount'], payment.amount * 3)
 
-    def test_카테고리별_최고_매출_상품과_금액(self):
-        # category
-        cat_qs = Category.objects.all()
-        for category in cat_qs:
-            option = ProductOption.objects.filter(product__category=category).last()
+    def test_이번달_매출_상위제품(self):
+        # 옵션 3개를 각각 따로 주문, 마지막 옵션은 하나 더 주문
+        qs = ProductOption.objects.all()[:3]
+        for option in qs:
             self.do_order(option_id=option.id)
 
-        # 마지막 카테고리의 상품하나 더 주문, 총 2개 구매
-        last_category = Category.objects.last()
-        option = ProductOption.objects.filter(product__category=last_category).last()
-        order, payment = self.do_order(option_id=option.id)
-
-        '''
-        [(category, ProductOption, amount), ...]
-        '''
-
+        option = qs[2]
+        self.do_order(option_id=option.id)
 
         self.login(self.superuser)
-        res = self.client.get('/ecommerce_admin/payments/this_month_by_category/')
+        res = self.client.get('/ecommerce_admin/payments/top_selling_items/')
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(len(res.data), Category.objects.count())
 
-        last_cate_data = list(filter(lambda x: x['category'] == last_category.id, res.data))[0]
-        self.assertEqual(last_cate_data['total_amount'], option.price * 2)
+        option_data = list(filter(lambda x: x['option']['id'] == option.id, res.data))[0]
+        self.assertEqual(option_data['total_amount'], option.price * 2)
