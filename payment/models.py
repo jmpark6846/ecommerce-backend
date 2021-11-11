@@ -18,7 +18,7 @@ class Order(models.Model):
         SHIPPING_COMPLETED = 4
         CANCELED = 5
 
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.SmallIntegerField(choices=STATUS.choices, default=STATUS.CREATED)
     total_amount = models.IntegerField(default=0)
     shipping_fee = models.IntegerField(default=DEFAULT_SHIPPING_FEE)
@@ -46,7 +46,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    option = models.ForeignKey('inventory.ProductOption', on_delete=models.DO_NOTHING)
+    option = models.ForeignKey('inventory.ProductOption', on_delete=models.CASCADE)
     qty = models.PositiveSmallIntegerField(default=0)
     amount = models.IntegerField('항목별 주문 금액', default=0)
 

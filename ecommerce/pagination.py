@@ -14,3 +14,9 @@ class DefaultPagination(PageNumberPagination):
             'current_page': self.page.number
         })
 
+
+class ProductPagination(DefaultPagination):
+    page_size = 6
+
+
+

@@ -5,7 +5,7 @@ from rest_framework.request import Request
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
-from ecommerce.pagination import DefaultPagination
+from ecommerce.pagination import DefaultPagination, ProductPagination
 from inventory.models import Product, ProductReview, Category
 from ecommerce.permissions import IsAuthor
 from inventory.serializers import ProductReviewSerializer, ProductListSerializer, \
@@ -13,8 +13,8 @@ from inventory.serializers import ProductReviewSerializer, ProductListSerializer
 
 
 class ProductViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
-    queryset = Product.objects.order_by('-created_at')
-    pagination_class = DefaultPagination
+    queryset = Product.objects.order_by('created_at')
+    pagination_class = ProductPagination
 
     def get_serializer_class(self):
         if self.action in ['list']:

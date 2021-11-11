@@ -12,7 +12,7 @@ User = get_user_model()
 class Product(models.Model):
     name = models.CharField('상품 이름', max_length=120)
     price = models.IntegerField('가격')
-    category = models.ForeignKey('inventory.Category', on_delete=models.DO_NOTHING)
+    category = models.ForeignKey('inventory.Category', on_delete=models.CASCADE)
     shipping_fee = models.IntegerField(default=DEFAULT_SHIPPING_FEE)
     created_at = models.DateTimeField(auto_now_add=True)
 

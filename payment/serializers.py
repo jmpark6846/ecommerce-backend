@@ -12,6 +12,11 @@ class OrderItemDetailSerializer(serializers.ModelSerializer):
         model = OrderItem
         fields = ['id', 'option', 'qty', 'amount']
 
+    def to_representation(self, instance):
+        result = super(OrderItemDetailSerializer, self).to_representation(instance)
+        result['option']['product'] = {"name": instance.option.product.name}
+        return result
+
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:

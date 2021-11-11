@@ -131,5 +131,3 @@ class PaymentTestCase(EcommerceTestCase):
 
         self.order.refresh_from_db()
 
-    def test_주문취소(self):
-        pass
