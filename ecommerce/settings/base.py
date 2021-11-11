@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
 
     'dj_rest_auth',
     'dj_rest_auth.registration',
@@ -202,6 +203,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5000',
     'https://ecommerce--5on7d983s.s3.amazonaws.com',
+    'https://ecommerce-frontend-five.vercel.app'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
