@@ -1,15 +1,19 @@
 from django.contrib.postgres.search import SearchVector
+from rest_framework import status
 from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from ecommerce.pagination import DefaultPagination, ProductPagination
-from inventory.models import Product, ProductReview, Category
-from ecommerce.permissions import IsAuthor
+from inventory.models import Product, ProductReview, Category, ShoppingCartItem
+from ecommerce.permissions import IsAuthor, IsOwner
 from inventory.serializers import ProductReviewSerializer, ProductListSerializer, \
     ProductDetailSerializer, CategorySerializer
+from payment.models import Order, OrderItem
+from payment.serializers import ShoppingCartItemSerializer, OrderDetailSerializer
 
 
 class ProductViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
@@ -25,7 +29,7 @@ class ProductViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
             serializer_class = ProductDetailSerializer
 
         return serializer_class
-
+  
     def get_serializer_context(self):
         context = super(ProductViewSet, self).get_serializer_context()
         context.update({'request': self.request})
@@ -77,3 +81,56 @@ class ProductReviewViewSet(ModelViewSet):
 
     def get_queryset(self):
         return ProductReview.objects.filter(author=self.request.user, product_id=self.kwargs['product_pk'])
+
+
+class CartView(APIView):
+    permission_classes = [IsOwner, IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        qs = ShoppingCartItem.objects.filter(cart=self.request.user.shoppingcart)
+        serializer = ShoppingCartItemSerializer(qs, context={'request': request}, many=True)
+        return Response(serializer.data, status=200)
+
+    def post(self, request, *args, **kwargs):
+        serializer = ShoppingCartItemSerializer(data=request.data, context={'cart': request.user.shoppingcart},
+                                                many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=201)
+
+    def patch(self, request, *args, **kwargs):
+        cart_item = ShoppingCartItem.objects.get(id=request.data['id'])
+        cart_item.qty = request.data['qty']
+        cart_item.save()
+        return Response(ShoppingCartItemSerializer(cart_item).data, status=200)
+
+    def put(self, request, *args, **kwargs):
+        qs = ShoppingCartItem.objects.filter(id__in=request.data)
+        qs.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CheckoutView(APIView):
+    permission_classes = [IsOwner, IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        cart_items: [ShoppingCartItem] = self.request.user.shoppingcart.items.all()
+        order = Order.objects.create(user=self.request.user)
+
+        if cart_items.count() == 0:
+            return Response({'error': '장바구니가 비어있습니다.'}, status=400)
+
+        for cart_item in cart_items:
+            order_item = OrderItem.objects.create(
+                order=order,
+                option=cart_item.option,
+                qty=cart_item.qty,
+            )
+            order_item.amount = cart_item.option.price * cart_item.qty
+            order_item.save()
+
+        order.total_amount = order.get_total_amount()
+        order.save()
+
+        return Response({'order': OrderDetailSerializer(order).data}, status=201)
+

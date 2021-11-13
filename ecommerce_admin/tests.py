@@ -1,14 +1,12 @@
 from django.utils import timezone
 from rest_framework.utils import json
 
-from accounts.models import ShoppingCartItem
 from ecommerce.tests import EcommerceTestCase
-from inventory.models import ProductOption, Category
-from payment.models import Payment, Order, OrderItem
-import random
+from inventory.models import ProductOption
+from payment.models import Payment
 
 
-class AdminTestCase(EcommerceTestCase):
+class AdminDashboardTestCase(EcommerceTestCase):
     def do_order(self, **kwargs):
         option_id = kwargs.get('option_id', ProductOption.objects.last().id)
         ordered_at = kwargs.get('ordered_at', timezone.now())
@@ -23,11 +21,11 @@ class AdminTestCase(EcommerceTestCase):
         }
         data = [cart_item]
         data = json.dumps(data)
-        res = self.client.post('/accounts/{}/cart/'.format(self.user.id), data, content_type='application/json')
+        res = self.client.post('/cart/'.format(self.user.id), data, content_type='application/json')
         self.assertEqual(res.status_code, 201)
 
         # 체크아웃
-        res = self.client.post('/accounts/{}/cart/checkout/'.format(self.user.id))
+        res = self.client.post('/cart/checkout/'.format(self.user.id))
         self.assertEqual(res.status_code, 201)
         order_id = res.data['order']['id']
 
@@ -68,5 +66,6 @@ class AdminTestCase(EcommerceTestCase):
         res = self.client.get('/ecommerce_admin/payments/top_selling_items/')
         self.assertEqual(res.status_code, 200)
 
+        # 2개 주문한 옵션의 매출은 옵션 가격의 2배
         option_data = list(filter(lambda x: x['option']['id'] == option.id, res.data))[0]
         self.assertEqual(option_data['total_amount'], option.price * 2)

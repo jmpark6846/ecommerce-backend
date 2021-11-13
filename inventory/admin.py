@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from inventory.models import Product, ProductReview, Category, ProductImage, ProductOption
+from inventory.models import Product, ProductReview, Category, ProductImage, ProductOption, ShoppingCart, \
+    ShoppingCartItem
 
 
 class ProductAdmin(admin.ModelAdmin):
@@ -26,3 +27,7 @@ admin.site.register(ProductImage, ProductImageAdmin)
 admin.site.register(ProductOption, ProductOptionAdmin)
 admin.site.register(ProductReview)
 admin.site.register(Category)
+
+
+admin.site.register(ShoppingCart)
+admin.site.register(ShoppingCartItem)

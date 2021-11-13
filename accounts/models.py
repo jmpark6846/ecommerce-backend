@@ -1,6 +1,7 @@
 from django.db import models
-from django.db.models.signals import post_save
-from django.contrib.auth.models import AbstractUser, BaseUserManager, Group
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+
+from inventory.models import ShoppingCart
 
 
 class UserManager(BaseUserManager):
@@ -53,16 +54,3 @@ class User(AbstractUser):
             ShoppingCart.objects.create(user=self)
         else:
             super(User, self).save(*args, **kwargs)
-
-
-class ShoppingCart(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.user.username
-
-
-class ShoppingCartItem(models.Model):
-    cart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE, related_name='items')
-    option = models.ForeignKey('inventory.ProductOption', on_delete=models.CASCADE)
-    qty = models.PositiveSmallIntegerField(default=0)

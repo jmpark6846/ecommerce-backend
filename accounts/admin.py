@@ -1,6 +1,4 @@
 from django.contrib import admin
-from accounts.models import User, ShoppingCartItem, ShoppingCart
+from accounts.models import User
 
 admin.site.register(User)
-admin.site.register(ShoppingCart)
-admin.site.register(ShoppingCartItem)

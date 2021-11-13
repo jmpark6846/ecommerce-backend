@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from inventory.models import Category, Product, ProductOption
-from inventory.serializers import CategorySerializer, ProductOptionDetailSerializer
+from inventory.models import ProductOption
+from inventory.serializers import ProductOptionDetailSerializer
 
 
 class TopSellingItemsSerializers(serializers.Serializer):

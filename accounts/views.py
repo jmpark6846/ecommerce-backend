@@ -12,12 +12,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import ShoppingCartItem
-from accounts.serializers import ShoppingCartItemSerializer
-from ecommerce.permissions import IsOwner
-from payment.models import Order, OrderItem
-from payment.serializers import OrderDetailSerializer
-
 
 class LogoutView(dj_rest_auth_LogoutView):
     def logout(self, request: Request):
@@ -56,55 +50,3 @@ class LogoutView(dj_rest_auth_LogoutView):
                 response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
         return response
-
-
-class CartView(APIView):
-    permission_classes = [IsOwner, IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        qs = ShoppingCartItem.objects.filter(cart=self.request.user.shoppingcart)
-        serializer = ShoppingCartItemSerializer(qs, context={'request': request}, many=True)
-        return Response(serializer.data, status=200)
-
-    def post(self, request, *args, **kwargs):
-        serializer = ShoppingCartItemSerializer(data=request.data, context={'cart': request.user.shoppingcart},
-                                                many=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=201)
-
-    def patch(self, request, *args, **kwargs):
-        cart_item = ShoppingCartItem.objects.get(id=request.data['id'])
-        cart_item.qty = request.data['qty']
-        cart_item.save()
-        return Response(ShoppingCartItemSerializer(cart_item).data, status=200)
-
-    def put(self, request, *args, **kwargs):
-        qs = ShoppingCartItem.objects.filter(id__in=request.data)
-        qs.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class CheckoutView(APIView):
-    permission_classes = [IsOwner, IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        cart_items: [ShoppingCartItem] = self.request.user.shoppingcart.items.all()
-        order = Order.objects.create(user=self.request.user)
-
-        if cart_items.count() == 0:
-            return Response({'error': '장바구니가 비어있습니다.'}, status=400)
-
-        for cart_item in cart_items:
-            order_item = OrderItem.objects.create(
-                order=order,
-                option=cart_item.option,
-                qty=cart_item.qty,
-            )
-            order_item.amount = cart_item.option.price * cart_item.qty
-            order_item.save()
-
-        order.total_amount = order.get_total_amount()
-        order.save()
-
-        return Response({'order': OrderDetailSerializer(order).data}, status=201)

@@ -2,9 +2,9 @@ import random
 import json
 from django.db.models import Value
 
-from accounts.models import ShoppingCartItem
+
 from ecommerce.tests import EcommerceTestCase
-from inventory.models import ProductOption, Product
+from inventory.models import ProductOption, Product, ShoppingCartItem
 from payment.models import Order, OrderItem, Payment
 from payment.serializers import get_change_from_histories
 
@@ -84,6 +84,7 @@ class PaymentTestCase(EcommerceTestCase):
 
         self.assertEqual(res.status_code, 201)
         self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.STATUS.PAID)
         self.assertIsNotNone(self.order.payments)
 
     def test_장바구니_추가_주문_결제(self):
@@ -97,11 +98,11 @@ class PaymentTestCase(EcommerceTestCase):
         }
         data = [cart_item]
         data = json.dumps(data)
-        res = self.client.post('/accounts/{}/cart/'.format(self.user.id), data, content_type='application/json')
+        res = self.client.post('/cart/'.format(self.user.id), data, content_type='application/json')
         self.assertEqual(res.status_code, 201)
 
         # 체크아웃
-        res = self.client.post('/accounts/{}/cart/checkout/'.format(self.user.id))
+        res = self.client.post('/cart/checkout/'.format(self.user.id))
         self.assertEqual(res.status_code, 201)
         order_id = res.data['order']['id']
 

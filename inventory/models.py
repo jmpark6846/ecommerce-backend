@@ -6,7 +6,7 @@ from django.db.models.signals import post_save
 from ecommerce.common import DEFAULT_SHIPPING_FEE
 from ecommerce.models import BaseModel
 
-User = get_user_model()
+User = settings.AUTH_USER_MODEL
 
 
 class Product(models.Model):
@@ -73,3 +73,18 @@ class ProductReview(BaseModel):
 
     def __str__(self):
         return self.content[:50]
+
+
+class ShoppingCart(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.username
+
+
+class ShoppingCartItem(models.Model):
+    cart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE, related_name='items')
+    option = models.ForeignKey('inventory.ProductOption', on_delete=models.CASCADE)
+    qty = models.PositiveSmallIntegerField(default=0)
+
+

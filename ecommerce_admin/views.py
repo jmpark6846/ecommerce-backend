@@ -1,4 +1,4 @@
-from django.db.models import Sum, F, Func
+from django.db.models import Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 
@@ -50,6 +50,5 @@ class PaymentAdminViewSet(ModelViewSet):
                                    .annotate(total_amount=Sum('amount'), total_qty=Sum('qty')) \
                                    .values('option', 'total_amount', 'total_qty') \
                                    .order_by('-total_amount')[:5]
-
-        return Response(TopSellingItemsSerializers(top_selling_items_qs, many=True, context={'request': request}).data,
-                        status=200)
+        serializer = TopSellingItemsSerializers(top_selling_items_qs, many=True, context={'request': request})
+        return Response(serializer.data, status=200)

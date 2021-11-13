@@ -1,4 +1,3 @@
-import rest_framework.exceptions
 from django.db import transaction, DatabaseError
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -6,10 +5,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import PermissionDenied, ValidationError, MethodNotAllowed
 
-from accounts.models import ShoppingCartItem
 from ecommerce.pagination import DefaultPagination
 from ecommerce.permissions import IsOwner
-from inventory.models import ProductOption
+from inventory.models import ProductOption, ShoppingCartItem
 from payment.models import Order, OrderItem, Payment
 from payment.serializers import OrderDetailSerializer, OrderListSerializer, PaymentSerializer
 
@@ -44,18 +42,8 @@ class OrderViewSet(ModelViewSet):
         return Order.objects.filter(user=self.request.user).order_by('-ordered_at')
 
     def create(self, request, *args, **kwargs):
-        """
-        주문 생성.
-        Order와 OrderItem을 생성한다.
-
-        @params
-        [{ option(int): 옵션 아이디, qty(int): 수량 }]
-        """
-        result = {}
         try:
             with transaction.atomic():
-                # 주문을 생성하고
-                # 요청 데이터로 주문 아이템을 만든다.
                 order = Order.objects.create(
                     user=self.request.user,
                 )
@@ -87,14 +75,6 @@ class OrderViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def proceed_payment(self, request, *args, **kwargs):
-        """
-        주문 -> 주문 전체 금액 구하기 -> 결제 정보 생성 -> 결제 요청
-        결제 성공: 결제 및 주문 상태 변경,
-        결제 실패: 결제 주문 상태 변경
-
-        @params
-        payment_method(str)
-        """
         order = self.get_object()
         is_mock_fail = False  # 결제 실패 테스트용
 

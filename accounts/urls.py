@@ -1,12 +1,9 @@
 from django.urls import path, include
-from rest_framework.urlpatterns import format_suffix_patterns
 
-from accounts.views import CartView, CheckoutView
+from accounts.views import LogoutView
 
 urlpatterns = [
-    path('<int:pk>/cart/checkout/', CheckoutView.as_view()),
-    path('<int:pk>/cart/', CartView.as_view()),
+    path('', include('dj_rest_auth.urls')),
+    path('registration/', include('dj_rest_auth.registration.urls')),
+    path('logout/', LogoutView.as_view(), name='logout'),
 ]
-
-urlpatterns = format_suffix_patterns(urlpatterns)
-
